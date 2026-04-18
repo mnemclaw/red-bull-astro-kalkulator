@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Red Bull Astro-Kalender | 7-Tage Energie-Orakel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3a 50%, #0d1a2d 100%);
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 2s infinite ease-in-out;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            font-size: 4rem;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            background: linear-gradient(90deg, #00d4ff, #0099ff, #00d4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% auto;
+            animation: shine 3s linear infinite;
+            margin-bottom: 10px;
+        }
+
+        @keyframes shine {
+            0% { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
+
+        .subtitle {
+            color: #88aaff;
+            font-size: 1.1rem;
+            font-style: italic;
+        }
+
+        .setup-panel {
+            background: rgba(25, 35, 60, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(100, 150, 255, 0.2);
+            margin-bottom: 40px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            color: #aaccff;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        select, input[type="date"] {
+            padding: 12px 16px;
+            font-size: 1rem;
+            border: 2px solid rgba(100, 150, 255, 0.3);
+            border-radius: 10px;
+            background: rgba(10, 20, 40, 0.8);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        select:hover, input[type="date"]:hover {
+            border-color: #00d4ff;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 16px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #0099ff 0%, #00d4ff 100%);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 153, 255, 0.4);
+            margin-top: 10px;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(0, 153, 255, 0.5);
+        }
+
+        .calendar {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .calendar.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .week-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(0, 100, 200, 0.2);
+            border-radius: 15px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .week-title {
+            font-size: 1.5rem;
+            color: #00d4ff;
+            margin-bottom: 5px;
+        }
+
+        .week-subtitle {
+            color: #88ccff;
+            font-size: 0.95rem;
+        }
+
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .day-card {
+            background: rgba(25, 35, 60, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 25px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .day-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ff6b6b, #ffd93d, #00d4ff);
+        }
+
+        .day-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 212, 255, 0.4);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .day-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(100, 150, 255, 0.2);
+        }
+
+        .day-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #00d4ff;
+        }
+
+        .day-date {
+            color: #88aaff;
+            font-size: 0.9rem;
+        }
+
+        .moon-phase {
+            font-size: 1.5rem;
+        }
+
+        .constellation {
+            font-size: 0.95rem;
+            color: #aaffaa;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+
+        .cans-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+
+        .cans-count {
+            font-size: 3rem;
+            font-weight: 800;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .cans-count.level-1 { color: #00d4ff; }
+        .cans-count.level-2 { color: #ffd93d; }
+        .cans-count.level-3 { color: #ff6b6b; }
+
+        .cans-label {
+            flex: 1;
+            font-size: 0.95rem;
+            color: #ccddff;
+        }
+
+        .cans-icons {
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+        }
+
+        .horoscope {
+            font-size: 0.9rem;
+            color: #e0e0e0;
+            line-height: 1.6;
+            padding: 12px;
+            background: rgba(255, 215, 0, 0.08);
+            border-left: 3px solid #ffd700;
+            border-radius: 0 8px 8px 0;
+            margin-top: 10px;
+        }
+
+        .energy-bar-container {
+            margin-top: 12px;
+        }
+
+        .energy-bar-label {
+            font-size: 0.8rem;
+            color: #88aaff;
+            margin-bottom: 5px;
+        }
+
+        .energy-bar {
+            height: 8px;
+            background: rgba(100, 150, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .energy-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .energy-fill.low { background: linear-gradient(90deg, #00d4ff, #0099ff); }
+        .energy-fill.medium { background: linear-gradient(90deg, #ffd93d, #ff6b35); }
+        .energy-fill.high { background: linear-gradient(90deg, #ff6b6b, #ff4757); }
+
+        .share-section {
+            margin-top: 40px;
+            text-align: center;
+            padding: 30px;
+            background: rgba(25, 35, 60, 0.5);
+            border-radius: 16px;
+        }
+
+        .share-btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #00d4ff, #0099ff);
+            border-radius: 25px;
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .share-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 212, 255, 0.4);
+        }
+
+        .disclaimer {
+            margin-top: 30px;
+            padding: 15px;
+            background: rgba(255, 100, 100, 0.1);
+            border: 1px solid rgba(255, 100, 100, 0.3);
+            border-radius: 10px;
+            font-size: 0.8rem;
+            color: #ff9999;
+            text-align: center;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #6688aa;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .days-grid {
+                grid-template-columns: 1fr;
+            }
+            h1 { font-size: 1.6rem; }
+            .cans-count { font-size: 2.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="stars" id="stars"></div>
+
+    <div class="container">
+        <header>
+            <div class="logo">🐂⚡</div>
+            <h1>Red Bull Astro-Kalender</h1>
+            <p class="subtitle">Dein 7-Tage Energie-Orakel basierend auf Sternkonstellationen</p>
+        </header>
+
+        <div class="setup-panel">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="birthdate">📅 Geburtsdatum</label>
+                    <input type="date" id="birthdate" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="weekstart">📆 Kalender-Woche ab</label>
+                    <input type="date" id="weekstart">
+                </div>
+
+                <div class="form-group">
+                    <label for="activity">🎯 Hauptaktivität</label>
+                    <select id="activity" required>
+                        <option value="mixed">Gemischte Aufgaben</option>
+                        <option value="coding">Programmieren</option>
+                        <option value="gaming">Gaming</option>
+                        <option value="studying">Studieren</option>
+                        <option value="work">Arbeit</option>
+                        <option value="creative">Kreative Arbeit</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="generate-btn" onclick="generateCalendar()">
+                🔮 Kalender berechnen
+            </button>
+        </div>
+
+        <div class="calendar" id="calendar">
+            <!-- Dynamically generated -->
+        </div>
+
+        <div class="disclaimer">
+            ⚠️ Dies ist satirische Unterhaltung. Maximal 3 Dosen pro Tag als Obergrenze.
+            Die Sterne haften nicht für Überschreitungen oder nächtliche Programmiersessions.
+        </div>
+
+        <footer>
+            <p>🌌 Powered by kosmischen Algorithmen 🌌</p>
+        </footer>
+    </div>
+
+    <script>
+        // Create animated stars
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            for (let i = 0; i < 150; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.width = Math.random() * 3 + 1 + 'px';
+                star.style.height = star.style.width;
+                star.style.animationDelay = Math.random() * 2 + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+        createStars();
+
+        // Set default week start to today
+        document.getElementById('weekstart').valueAsDate = new Date();
+
+        const zodiacSigns = [
+            { name: "Wassermann", element: "Luft", factor: 1.1 },
+            { name: "Fische", element: "Wasser", factor: 0.9 },
+            { name: "Widder", element: "Feuer", factor: 1.2 },
+            { name: "Stier", element: "Erde", factor: 1.0 },
+            { name: "Zwillinge", element: "Luft", factor: 1.15 },
+            { name: "Krebs", element: "Wasser", factor: 0.85 },
+            { name: "Löwe", element: "Feuer", factor: 1.25 },
+            { name: "Jungfrau", element: "Erde", factor: 1.0 },
+            { name: "Waage", element: "Luft", factor: 1.1 },
+            { name: "Skorpion", element: "Wasser", factor: 1.15 },
+            { name: "Schütze", element: "Feuer", factor: 1.2 },
+            { name: "Steinbock", element: "Erde", factor: 1.05 }
+        ];
+
+        const moonPhases = [
+            { emoji: "🌑", name: "Neumond", factor: 1.3 },
+            { emoji: "🌒", name: "Zunehmend", factor: 1.1 },
+            { emoji: "🌓", name: "Erstes Viertel", factor: 1.15 },
+            { emoji: "🌔", name: "Zunehmend", factor: 1.2 },
+            { emoji: "🌕", name: "Vollmond", factor: 1.35 },
+            { emoji: "🌖", name: "Abnehmend", factor: 1.1 },
+            { emoji: "🌗", name: "Letztes Viertel", factor: 0.95 },
+            { emoji: "🌘", name: "Abnehmend", factor: 0.9 }
+        ];
+
+        const dayNames = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
+        const monthNames = ["Januar", "Februar", "März", "April", "Mai", "Juni",
+                           "Juli", "August", "September", "Oktober", "November", "Dezember"];
+
+        function getZodiac(day, month) {
+            const cutoff = [20, 19, 21, 20, 21, 21, 23, 23, 23, 23, 22, 22];
+            const idx = month - 1;
+            if (day < cutoff[idx]) {
+                return zodiacSigns[(idx + 11) % 12];
+            }
+            return zodiacSigns[idx];
+        }
+
+        function getMoonPhase(date) {
+            // Simple moon phase calculation based on known new moon
+            const newMoon = new Date("2000-01-06T18:14:00Z");
+            const diff = date - newMoon;
+            const days = diff / (1000 * 60 * 60 * 24);
+            const synodic = 29.53059;
+            const phase = ((days % synodic) + synodic) % synodic;
+            const phaseIndex = Math.floor((phase / synodic) * 8) % 8;
+            return moonPhases[phaseIndex];
+        }
+
+        const horoscopes = {
+            low: [
+                "Die Sterne stehen ruhig – ein sanfter Tag ohne große Energieschwankungen.",
+                "Kosmische Entspannung: Deine Batterien laden sich auf.",
+                "Minimaler Bedarf heute. Die Galaxie schläft friedlich.",
+                "Ein Tag für klare Gedanken ohne chemische Unterstützung."
+            ],
+            medium: [
+                "Leichte kosmische Turbulenzen – ein kleiner Schub schadet nicht.",
+                "Die Planeten empfehlen moderate Energiezufuhr.",
+                "Ein ausgewogener Tag zwischen Mars und Venus.",
+                "Die Konstellation erlaubt moderate Aktivität."
+            ],
+            high: [
+                "Starke astro-chemische Winde – Vollgas empfohlen!",
+                "Die Sternkonstellation verlangt nach maximaler Performance.",
+                "Kosmische Energieflut: Bereite dich auf Intensives vor.",
+                "Die Galaxie pulsiert – du solltest auch."
+            ]
+        };
+
+        const activities = {
+            mixed: { base: 1, label: "" },
+            coding: { base: 1.2, label: "🖥️ Code-Session" },
+            gaming: { base: 1.1, label: "🎮 Gaming-Marathon" },
+            studying: { base: 1.15, label: "📚 Lern-Modus" },
+            work: { base: 1.0, label: "💼 Work-Mode" },
+            creative: { base: 1.05, label: "🎨 Kreativ-Flow" }
+        };
+
+        function generateCalendar() {
+            const birthdate = document.getElementById('birthdate').value;
+            const weekstart = document.getElementById('weekstart').value;
+            const activityType = document.getElementById('activity').value;
+
+            if (!birthdate || !weekstart) {
+                alert('Bitte Geburtsdatum und Kalender-Start angeben!');
+                return;
+            }
+
+            const zodiac = getZodiac(
+                parseInt(birthdate.split('-')[2]),
+                parseInt(birthdate.split('-')[1])
+            );
+
+            const startDate = new Date(weekstart);
+            let html = `
+                <div class="week-header">
+                    <div class="week-title">Deine Astro-Woche</div>
+                    <div class="week-subtitle">${zodiac.name} ♦ ${zodiac.element} ♦ Wochenhoroskop</div>
+                </div>
+                <div class="days-grid">
+            `;
+
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+
+                const moon = getMoonPhase(date);
+                const dayName = dayNames[date.getDay()];
+                const dateStr = `${date.getDate()}. ${monthNames[date.getMonth()]}`;
+                const activity = activities[activityType];
+
+                // Calculate cans (max 3)
+                let cans = Math.round(1 * activity.base * zodiac.factor * moon.factor);
+                cans = Math.min(3, Math.max(1, cans)); // Clamp between 1-3
+
+                const levelClass = cans === 1 ? 'level-1' : cans === 2 ? 'level-2' : 'level-3';
+                const barClass = cans === 1 ? 'low' : cans === 2 ? 'medium' : 'high';
+                const bullIcons = '🐂'.repeat(cans);
+
+                const horoscopeText = cans === 1 ?
+                    horoscopes.low[Math.floor(Math.random() * horoscopes.low.length)] :
+                    cans === 2 ?
+                    horoscopes.medium[Math.floor(Math.random() * horoscopes.medium.length)] :
+                    horoscopes.high[Math.floor(Math.random() * horoscopes.high.length)];
+
+                html += `
+                    <div class="day-card">
+                        <div class="day-header">
+                            <div>
+                                <div class="day-name">${dayName}</div>
+                                <div class="day-date">${dateStr}</div>
+                            </div>
+                            <div class="moon-phase" title="${moon.name}">${moon.emoji}</div>
+                        </div>
+                        <div class="constellation">${zodiac.name} × ${moon.name}</div>
+                        <div class="cans-section">
+                            <div class="cans-count ${levelClass}">${cans}</div>
+                            <div class="cans-label">
+                                Dose${cans > 1 ? 'n' : ''} empfohlen<br>
+                                <span class="cans-icons">${bullIcons}</span>
+                            </div>
+                        </div>
+                        <div class="energy-bar-container">
+                            <div class="energy-bar-label">Energie-Index</div>
+                            <div class="energy-bar">
+                                <div class="energy-fill ${barClass}" style="width: ${(cans/3)*100}%"></div>
+                            </div>
+                        </div>
+                        <div class="horoscope">${horoscopeText}</div>
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+            html += `
+                <div class="share-section">
+                    <h3 style="margin-bottom: 15px; color: #00d4ff;">Dein Astro-Kalender ist bereit!</h3>
+                    <p style="margin-bottom: 20px; color: #88aaff;">Speichere deine 7-Tage-Prophezeiung</p>
+                </div>
+            `;
+
+            const calendar = document.getElementById('calendar');
+            calendar.innerHTML = html;
+            calendar.classList.add('show');
+            calendar.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
